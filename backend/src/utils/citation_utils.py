@@ -1,38 +1,35 @@
-"""Citation processing utilities."""
-
-
 def insert_citation_markers(text, citations_list):
     """
-    Inserts citation markers into a text string based on start and end indices.
+    開始・終了インデックスに基づいてテキスト文字列に引用マーカーを挿入します。
 
     Args:
-        text (str): The original text string.
-        citations_list (list): A list of dictionaries, where each dictionary
-                               contains 'start_index', 'end_index', and
-                               'segment_string' (the marker to insert).
-                               Indices are assumed to be for the original text.
+        text (str): 元のテキスト文字列
+        citations_list (list): 辞書のリスト。各辞書には
+                               'start_index'、'end_index'、
+                               'segment_string'（挿入するマーカー）が含まれます。
+                               インデックスは元のテキストに対するものとします。
 
     Returns:
-        str: The text with citation markers inserted.
+        str: 引用マーカーが挿入されたテキスト
     """
-    # Sort citations by end_index in descending order.
-    # If end_index is the same, secondary sort by start_index descending.
-    # This ensures that insertions at the end of the string don't affect
-    # the indices of earlier parts of the string that still need to be processed.
+    # end_index で降順にソート
+    # end_index が同じ場合は、start_index で降順にソート
+    # これにより、文字列の最後での挿入が、まだ処理が必要な
+    # 文字列の前の部分のインデックスに影響を与えないことを保証します
     sorted_citations = sorted(
         citations_list, key=lambda c: (c["end_index"], c["start_index"]), reverse=True
     )
 
     modified_text = text
     for citation_info in sorted_citations:
-        # These indices refer to positions in the *original* text,
-        # but since we iterate from the end, they remain valid for insertion
-        # relative to the parts of the string already processed.
+        # これらのインデックスは*元の*テキストの位置を参照しますが、
+        # 最後から反復処理するため、すでに処理された文字列の部分に
+        # 対する挿入位置として有効なままです
         end_idx = citation_info["end_index"]
         marker_to_insert = ""
         for segment in citation_info["segments"]:
             marker_to_insert += f" [{segment['label']}]({segment['short_url']})"
-        # Insert the citation marker at the original end_idx position
+        # 元の end_idx 位置に引用マーカーを挿入
         modified_text = (
             modified_text[:end_idx] + marker_to_insert + modified_text[end_idx:]
         )
@@ -42,37 +39,37 @@ def insert_citation_markers(text, citations_list):
 
 def get_citations(response, resolved_urls_map):
     """
-    Extracts and formats citation information from an AI model's response.
+    AIモデルのレスポンスから引用情報を抽出してフォーマットします。
 
-    This function processes the grounding metadata provided in the response to
-    construct a list of citation objects. Each citation object includes the
-    start and end indices of the text segment it refers to, and a string
-    containing formatted markdown links to the supporting web chunks.
+    この関数は、レスポンスで提供されるグラウンディングメタデータを処理して
+    引用オブジェクトのリストを構築します。各引用オブジェクトには、
+    参照するテキストセグメントの開始・終了インデックス、および
+    サポートするウェブチャンクへのフォーマット済みマークダウンリンクを
+    含む文字列が含まれます。
 
     Args:
-        response: The response object from the AI model, expected to have
-                  a structure including `candidates[0].grounding_metadata`.
-                  It also relies on a `resolved_map` being available in its
-                  scope to map chunk URIs to resolved URLs.
+        response: AIモデルからのレスポンスオブジェクト。
+                  `candidates[0].grounding_metadata`を含む構造を持つことが期待されます。
+                  また、チャンクURIを解決済みURLにマップするために
+                  `resolved_map`が利用可能であることに依存します。
 
     Returns:
-        list: A list of dictionaries, where each dictionary represents a citation
-              and has the following keys:
-              - "start_index" (int): The starting character index of the cited
-                                     segment in the original text. Defaults to 0
-                                     if not specified.
-              - "end_index" (int): The character index immediately after the
-                                   end of the cited segment (exclusive).
-              - "segments" (list[str]): A list of individual markdown-formatted
-                                        links for each grounding chunk.
-              - "segment_string" (str): A concatenated string of all markdown-
-                                        formatted links for the citation.
-              Returns an empty list if no valid candidates or grounding supports
-              are found, or if essential data is missing.
+        list: 辞書のリスト。各辞書は引用を表し、以下のキーを持ちます：
+              - "start_index" (int): 元のテキストで引用されたセグメントの
+                                     開始文字インデックス。
+                                     指定されていない場合は0がデフォルト。
+              - "end_index" (int): 引用されたセグメントの終了直後の
+                                   文字インデックス（排他的）。
+              - "segments" (list[str]): 各グラウンディングチャンクに対する
+                                        個別のマークダウン形式のリンクのリスト。
+              - "segment_string" (str): 引用のすべてのマークダウン形式の
+                                        リンクを連結した文字列。
+              有効な候補やグラウンディングサポートが見つからない場合、
+              または必須データが欠落している場合は空のリストを返します。
     """
     citations = []
 
-    # Ensure response and necessary nested structures are present
+    # レスポンスと必要なネストされた構造が存在することを確認
     if not response or not response.candidates:
         return citations
 
@@ -87,9 +84,9 @@ def get_citations(response, resolved_urls_map):
     for support in candidate.grounding_metadata.grounding_supports:
         citation = {}
 
-        # Ensure segment information is present
+        # セグメント情報が存在することを確認
         if not hasattr(support, "segment") or support.segment is None:
-            continue  # Skip this support if segment info is missing
+            continue  # セグメント情報が欠落している場合はこのサポートをスキップ
 
         start_index = (
             support.segment.start_index
@@ -97,12 +94,12 @@ def get_citations(response, resolved_urls_map):
             else 0
         )
 
-        # Ensure end_index is present to form a valid segment
+        # 有効なセグメントを形成するために end_index が存在することを確認
         if support.segment.end_index is None:
-            continue  # Skip if end_index is missing, as it's crucial
+            continue  # end_index が欠落している場合はスキップ（必須のため）
 
-        # Add 1 to end_index to make it an exclusive end for slicing/range purposes
-        # (assuming the API provides an inclusive end_index)
+        # スライス/範囲目的で排他的な終了とするために end_index に 1 を加算
+        # (API が包括的な end_index を提供すると仮定)
         citation["start_index"] = start_index
         citation["end_index"] = support.segment.end_index
 
@@ -123,9 +120,9 @@ def get_citations(response, resolved_urls_map):
                         }
                     )
                 except (IndexError, AttributeError, NameError):
-                    # Handle cases where chunk, web, uri, or resolved_map might be problematic
-                    # For simplicity, we'll just skip adding this particular segment link
-                    # In a production system, you might want to log this.
+                    # chunk、web、uri、または resolved_map に問題がある場合を処理
+                    # 簡単のため、この特定のセグメントリンクの追加をスキップします
+                    # 本番システムでは、これをログに記録することを検討してください
                     pass
         citations.append(citation)
     return citations

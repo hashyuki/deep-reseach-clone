@@ -1,46 +1,46 @@
-"""Research-related prompt templates."""
+"""研究関連プロンプトテンプレート"""
 
-web_searcher_instructions = """Conduct targeted Google Searches to gather the most recent, credible information on "{research_topic}" and synthesize it into a verifiable text artifact.
+web_searcher_instructions = """「{research_topic}」に関する最新かつ信頼できる情報を収集するために、ターゲットを絞ったGoogle検索を実施し、検証可能なテキストアーティファクトに統合してください。
 
-Instructions:
-- Query should ensure that the most current information is gathered. The current date is {current_date}.
-- Conduct multiple, diverse searches to gather comprehensive information.
-- Consolidate key findings while meticulously tracking the source(s) for each specific piece of information.
-- The output should be a well-written summary or report based on your search findings. 
-- Only include the information found in the search results, don't make up any information.
+指示事項:
+- クエリは最新の情報が収集されることを確実にすべきです。現在の日付は {current_date} です。
+- 包括的な情報を収集するために、複数の多様な検索を実施してください。
+- 各特定の情報のソースを細心の注意を払って追跡しながら、主要な発見を統合してください。
+- 出力は検索結果に基づいた、よく書かれた要約またはレポートであるべきです。
+- 検索結果で見つかった情報のみを含め、情報を作り出さないでください。
 
-Research Topic:
+研究トピック:
 {research_topic}
 """
 
-reflection_instructions = """You are an expert research assistant analyzing summaries about "{research_topic}".
+reflection_instructions = """あなたは「{research_topic}」に関する要約を分析する専門の研究アシスタントです。
 
-Instructions:
-- Identify knowledge gaps or areas that need deeper exploration and generate a follow-up query. (1 or multiple).
-- If provided summaries are sufficient to answer the user's question, don't generate a follow-up query.
-- If there is a knowledge gap, generate a follow-up query that would help expand your understanding.
-- Focus on technical details, implementation specifics, or emerging trends that weren't fully covered.
+指示事項:
+- 知識のギャップやより深い探求が必要な領域を特定し、フォローアップクエリを生成してください（1つまたは複数）。
+- 提供された要約がユーザーの質問に答えるのに十分な場合は、フォローアップクエリを生成しないでください。
+- 知識のギャップがある場合は、理解を深めるのに役立つフォローアップクエリを生成してください。
+- 十分にカバーされていなかった技術的詳細、実装の詳細、または新しいトレンドに焦点を当ててください。
 
-Requirements:
-- Ensure the follow-up query is self-contained and includes necessary context for web search.
+要件:
+- フォローアップクエリは自己完結型で、ウェブ検索に必要なコンテキストを含むようにしてください。
 
-Output Format:
-- Format your response as a JSON object with these exact keys:
-   - "is_sufficient": true or false
-   - "knowledge_gap": Describe what information is missing or needs clarification
-   - "follow_up_queries": Write a specific question to address this gap
+出力フォーマット:
+- 回答を以下の必須キーを持つJSONオブジェクトとしてフォーマットしてください:
+   - "is_sufficient": true または false
+   - "knowledge_gap": どのような情報が不足しているか、または明確化が必要かを説明
+   - "follow_up_queries": このギャップに対処するための具体的な質問を記述
 
-Example:
+例:
 ```json
 {{
-    "is_sufficient": true, // or false
-    "knowledge_gap": "The summary lacks information about performance metrics and benchmarks", // "" if is_sufficient is true
-    "follow_up_queries": ["What are typical performance benchmarks and metrics used to evaluate [specific technology]?"] // [] if is_sufficient is true
+    "is_sufficient": true, // または false
+    "knowledge_gap": "要約にはパフォーマンスメトリクスとベンチマークに関する情報が不足しています", // is_sufficient が true の場合は ""
+    "follow_up_queries": ["[特定の技術]を評価するために使用される典型的なパフォーマンスベンチマークとメトリクスは何ですか？"] // is_sufficient が true の場合は []
 }}
 ```
 
-Reflect carefully on the Summaries to identify knowledge gaps and produce a follow-up query. Then, produce your output following this JSON format:
+要約を慎重に検討して知識のギャップを特定し、フォローアップクエリを作成してください。その後、このJSONフォーマットに従って出力を生成してください:
 
-Summaries:
+要約:
 {summaries}
 """

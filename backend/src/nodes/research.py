@@ -1,39 +1,25 @@
 import os
 from typing import Any, Dict, List, Tuple, Union, cast
 
-from config import Configuration
 from dotenv import load_dotenv
 from langchain_community.tools import TavilySearchResults
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.types import Send
-from prompts import (
-    get_current_date,
-    reflection_instructions,
-)
+from src.prompts import reflection_instructions
 from pydantic import BaseModel, SecretStr
-from schemas import Reflection
-from states import OverallState, WebSearchState
-from utils import (
-    get_research_topic,
-)
+from src.schemas import Reflection
+from src.states import OverallState, WebSearchState
+from src.utils import get_research_topic
+from src.utils.date_utils import get_current_date
+from src.config.configuration import Configuration
 
 from .base_node import BaseNode
 
 load_dotenv()
 
 if os.getenv("TAVILY_API_KEY") is None:
-    raise ValueError("TAVILY_API_KEY is not set")
-
-# Tavily検索ツールの初期化
-tavily_search = TavilySearchResults(
-    max_results=5,
-    search_depth="advanced",
-    include_answer=True,
-    include_raw_content=False,
-    include_images=False,
-    api_key=os.getenv("TAVILY_API_KEY"),
-)
+    raise ValueError("TAVILY_API_KEY が設定されていません")
 
 
 class WebResearchNode(BaseNode):
@@ -43,8 +29,20 @@ class WebResearchNode(BaseNode):
         """ウェブ研究ノードを初期化。"""
         super().__init__()
 
-    def _execute_search(self, query: str) -> List[Dict[str, Any]]:
+    def _get_tavily_search(self, config_obj) -> TavilySearchResults:
+        """設定に基づいてTavilySearchResultsインスタンスを作成。"""
+        return TavilySearchResults(
+            max_results=config_obj.search.max_results,
+            search_depth=config_obj.search.depth,
+            include_answer=True,
+            include_raw_content=False,
+            include_images=config_obj.search.include_images,
+            api_key=os.getenv("TAVILY_API_KEY"),
+        )
+
+    def _execute_search(self, query: str, config_obj) -> List[Dict[str, Any]]:
         """Tavily検索を実行して生の結果を返す。"""
+        tavily_search = self._get_tavily_search(config_obj)
         return tavily_search.invoke({"query": query})
 
     def _create_citation_marker(self, state_id: int, result_index: int) -> str:
@@ -67,8 +65,8 @@ class WebResearchNode(BaseNode):
         title = result.get("title", "タイトルなし")
         content = result.get("content", "コンテンツなし")
         url = result.get("url", "")
-        
-        # 明確な引用マーカー付きフォーマット  
+
+        # 明確な引用マーカー付きフォーマット
         return f"Source {citation_marker}:\nTitle: {title}\nContent: {content}\nURL: {url}\n\n引用時は必ず {citation_marker} を使用してください。\n\n"
 
     def _process_search_results(
@@ -98,8 +96,11 @@ class WebResearchNode(BaseNode):
         # 型安全性のためにstateをWebSearchStateとしてキャスト
         web_search_state = cast(WebSearchState, state)
 
+        # 設定を取得
+        config_obj = Configuration.get_config(config)
+
         # 検索を実行
-        search_results = self._execute_search(web_search_state.search_query)
+        search_results = self._execute_search(web_search_state.search_query, config_obj)
 
         # 結果を処理
         sources_gathered, modified_text = self._process_search_results(
@@ -126,10 +127,9 @@ class ReflectionNode(BaseNode):
         """リフレクションノードを初期化。"""
         super().__init__()
 
-    def _get_reasoning_model(self, state: OverallState, config: RunnableConfig) -> str:
+    def _get_reasoning_model(self, state: OverallState, config_obj) -> str:
         """状態または設定から推論モデルを取得。"""
-        configurable = Configuration.from_runnable_config(config)
-        return state.reasoning_model or configurable.reflection_model
+        return state.reasoning_model or config_obj.model.reflection_model
 
     def _create_reflection_prompt(self, state: OverallState) -> str:
         """状態データからリフレクションプロンプトを作成。"""
@@ -143,13 +143,13 @@ class ReflectionNode(BaseNode):
             summaries=summaries,
         )
 
-    def _initialize_llm(self, model: str) -> ChatOpenAI:
+    def _initialize_llm(self, model: str, config_obj) -> ChatOpenAI:
         """推論LLMを初期化。"""
         api_key = os.getenv("OPENAI_API_KEY")
         return ChatOpenAI(
             model=model,
-            temperature=1.0,
-            max_retries=2,
+            temperature=config_obj.llm_parameters.reflection_temperature,
+            max_retries=config_obj.llm_parameters.max_retries,
             api_key=SecretStr(api_key) if api_key else None,
         )
 
@@ -165,13 +165,14 @@ class ReflectionNode(BaseNode):
         # 型安全性のためにstateをOverallStateとしてキャスト
         overall_state = cast(OverallState, state)
 
-        # モデルを取得し、ループカウントを増加
-        reasoning_model = self._get_reasoning_model(overall_state, config)
+        # 設定を取得
+        config_obj = Configuration.get_config(config)
+        reasoning_model = self._get_reasoning_model(overall_state, config_obj)
         current_loop_count = overall_state.research_loop_count + 1
 
         # プロンプトを作成し、LLMを初期化
         formatted_prompt = self._create_reflection_prompt(overall_state)
-        llm = self._initialize_llm(reasoning_model)
+        llm = self._initialize_llm(reasoning_model, config_obj)
 
         # ギャップを分析
         _result = self._analyze_research_gaps(formatted_prompt, llm)
@@ -197,23 +198,23 @@ class ResearchEvaluationNode(BaseNode):
         super().__init__()
 
     def _get_max_research_loops(
-        self, state: OverallState, config: RunnableConfig
+        self, state: OverallState, config_obj
     ) -> int:
         """状態または設定から最大研究ループ数を取得。"""
-        configurable = Configuration.from_runnable_config(config)
         return (
             state.max_research_loops
             if state.max_research_loops is not None
-            else configurable.max_research_loops
+            else config_obj.research.max_research_loops
         )
 
     def _should_finalize_research(self, state: OverallState, max_loops: int) -> bool:
         """研究を終了すべきかどうかを判断。"""
-        # OverallStateにはis_sufficientがないため、適当な判定ロジックに変更
         return state.research_loop_count >= max_loops
 
-    def _create_follow_up_searches(self, state: OverallState) -> List[Send]:
+    def _create_follow_up_searches(self, state: OverallState, config_obj) -> List[Send]:
         """知識ギャップのフォローアップ検索タスクを作成。"""
+        max_follow_up = config_obj.research.max_follow_up_queries
+        
         return [
             Send(
                 "web_research",
@@ -223,8 +224,8 @@ class ResearchEvaluationNode(BaseNode):
                 ),
             )
             for idx, follow_up_query in enumerate(
-                state.search_query[-3:]
-            )  # 最後の3つのクエリを使用
+                state.search_query[-max_follow_up:]
+            )
         ]
 
     def __call__(
@@ -234,9 +235,11 @@ class ResearchEvaluationNode(BaseNode):
         # 型安全性のためにstateをOverallStateとしてキャスト
         overall_state = cast(OverallState, state)
 
-        max_research_loops = self._get_max_research_loops(overall_state, config)
+        # 設定を取得
+        config_obj = Configuration.get_config(config)
+        max_research_loops = self._get_max_research_loops(overall_state, config_obj)
 
         if self._should_finalize_research(overall_state, max_research_loops):
             return "finalize_answer"
         else:
-            return self._create_follow_up_searches(overall_state)
+            return self._create_follow_up_searches(overall_state, config_obj)

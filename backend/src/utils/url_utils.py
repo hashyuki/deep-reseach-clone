@@ -1,17 +1,15 @@
-"""URL processing utilities."""
-
 from typing import Any, Dict, List
 
 
 def resolve_urls(urls_to_resolve: List[Any], id: int) -> Dict[str, str]:
     """
-    Create a map of the vertex ai search urls (very long) to a short url with a unique id for each url.
-    Ensures each original URL gets a consistent shortened form while maintaining uniqueness.
+    Vertex AI検索URL（非常に長い）を、各URLに一意のIDを持つ短いURLにマップを作成します。
+    各元のURLが一貫した短縮形式を取得し、一意性を維持することを保証します。
     """
-    prefix = f"https://vertexaisearch.cloud.google.com/id/"
+    prefix = "https://vertexaisearch.cloud.google.com/id/"
     urls = [site.web.uri for site in urls_to_resolve]
 
-    # Create a dictionary that maps each unique URL to its first occurrence index
+    # 各一意のURLを最初の出現インデックスにマップする辞書を作成
     resolved_map = {}
     for idx, url in enumerate(urls):
         if url not in resolved_map:

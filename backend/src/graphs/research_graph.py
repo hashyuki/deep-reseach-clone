@@ -1,8 +1,7 @@
 from typing import Hashable, Union, cast
 
-from config import Configuration
 from langgraph.graph import END, START, StateGraph
-from nodes import (
+from src.nodes import (
     FinalizationNode,
     QueryGenerationNode,
     ReflectionNode,
@@ -10,7 +9,7 @@ from nodes import (
     WebResearchNode,
     WebResearchRouterNode,
 )
-from states import OverallState
+from src.states import OverallState
 
 
 # Router functions for conditional edges
@@ -33,11 +32,11 @@ def research_evaluation_router(state: OverallState) -> Union[Hashable, list[Hash
 
 
 # Create our Research Agent Graph
-builder = StateGraph(OverallState, config_schema=Configuration)
+builder = StateGraph(OverallState)
 
 # Define the nodes we will cycle between
 builder.add_node("generate_query", QueryGenerationNode())
-builder.add_node("web_research", WebResearchNode())
+builder.add_node("web_research", WebResearchNode()) 
 builder.add_node("reflection", ReflectionNode())
 builder.add_node("finalize_answer", FinalizationNode())
 
@@ -55,4 +54,7 @@ builder.add_conditional_edges(
 # Finalize the answer
 builder.add_edge("finalize_answer", END)
 
-research_graph = builder.compile(name="pro-search-agent")
+# Compile the graph with better metadata
+research_graph = builder.compile(
+    checkpointer=None  # Using in-memory checkpointing for development
+)

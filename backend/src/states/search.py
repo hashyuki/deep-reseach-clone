@@ -1,23 +1,8 @@
-"""Search-related state definitions."""
-
 from pydantic import BaseModel, Field
 
 
 class WebSearchState(BaseModel):
-    """State for web search operations."""
-    
-    search_query: str = Field(
-        description="The search query to execute"
-    )
-    id: int = Field(
-        description="Unique identifier for this search operation"
-    )
+    """ウェブ検索クエリを格納するState"""
 
-
-class SearchStateOutput(BaseModel):
-    """Output state for search operations."""
-    
-    running_summary: str = Field(
-        default="",
-        description="Final research report summary"
-    )
+    id: int = Field(description="この検索操作の一意識別子")
+    search_query: str = Field(description="実行する検索クエリ")

@@ -22,7 +22,7 @@ trap cleanup INT TERM
 
 # Start backend
 echo -e "${GREEN}バックエンド (LangGraph) を起動しています...${NC}"
-cd backend && langgraph dev --port 8123 &
+cd backend && uv run langgraph dev --port 8123 &
 BACKEND_PID=$!
 
 # Wait a bit for backend to start

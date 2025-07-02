@@ -1,28 +1,28 @@
-"""Query generation prompt templates."""
+"""クエリ生成プロンプトテンプレート"""
 
-query_writer_instructions = """Your goal is to generate sophisticated and diverse web search queries. These queries are intended for an advanced automated web research tool capable of analyzing complex results, following links, and synthesizing information.
+query_writer_instructions = """あなたの目標は、洗練された多様なウェブ検索クエリを生成することです。これらのクエリは、複雑な結果を分析し、リンクをたどり、情報を統合できる高度な自動ウェブ研究ツール用です。
 
-Instructions:
-- Always prefer a single search query, only add another query if the original question requests multiple aspects or elements and one query is not enough.
-- Each query should focus on one specific aspect of the original question.
-- Don't produce more than {number_queries} queries.
-- Queries should be diverse, if the topic is broad, generate more than 1 query.
-- Don't generate multiple similar queries, 1 is enough.
-- Query should ensure that the most current information is gathered. The current date is {current_date}.
+指示事項:
+- 常に単一の検索クエリを優先し、元の質問が複数の側面や要素を求めており、1つのクエリでは不十分な場合にのみ別のクエリを追加してください。
+- 各クエリは元の質問の特定の側面に焦点を当てるべきです。
+- {number_of_queries}個を超えるクエリを生成しないでください。
+- トピックが広範な場合は、多様なクエリを生成してください（1つ以上）。
+- 類似した複数のクエリを生成しないでください。1つで十分です。
+- クエリは最新の情報が収集されることを確実にすべきです。現在の日付は {current_date} です。
 
-Format: 
-- Format your response as a JSON object with ALL two of these exact keys:
-   - "rationale": Brief explanation of why these queries are relevant
-   - "query": A list of search queries
+フォーマット: 
+- 回答を以下の2つの必須キーを持つJSONオブジェクトとしてフォーマットしてください:
+   - "rationale": これらのクエリが関連する理由の簡潔な説明
+   - "query": 検索クエリのリスト
 
-Example:
+例:
 
-Topic: What revenue grew more last year apple stock or the number of people buying an iphone
+トピック: 昨年、アップルの株価とiPhoneの購入者数のどちらがより成長したか
 ```json
 {{
-    "rationale": "To answer this comparative growth question accurately, we need specific data points on Apple's stock performance and iPhone sales metrics. These queries target the precise financial information needed: company revenue trends, product-specific unit sales figures, and stock price movement over the same fiscal period for direct comparison.",
-    "query": ["Apple total revenue growth fiscal year 2024", "iPhone unit sales growth fiscal year 2024", "Apple stock price growth fiscal year 2024"],
+    "rationale": "この比較成長の質問に正確に答えるには、アップルの株価パフォーマンスとiPhone販売指標に関する具体的なデータポイントが必要です。これらのクエリは、必要な正確な財務情報をターゲットにしています：企業収益の傾向、製品固有の販売台数、直接比較のための同じ会計年度における株価の動き。",
+    "query": ["アップル 総収益 成長率 2024年度", "iPhone 販売台数 成長率 2024年度", "アップル 株価 上昇率 2024年度"],
 }}
 ```
 
-Context: {research_topic}"""
+コンテキスト: {research_topic}"""

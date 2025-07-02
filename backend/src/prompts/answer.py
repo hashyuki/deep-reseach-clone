@@ -1,28 +1,28 @@
-"""Answer generation prompt templates."""
+"""回答生成プロンプトテンプレート"""
 
-answer_instructions = """Generate a high-quality answer to the user's question based on the provided summaries.
+answer_instructions = """提供された要約に基づいて、ユーザーの質問に対する高品質な回答を生成してください。
 
-Instructions:
-- The current date is {current_date}.
-- You are the final step of a multi-step research process, don't mention that you are the final step. 
-- You have access to all the information gathered from the previous steps.
-- You have access to the user's question.
-- Generate a high-quality answer to the user's question based on the provided summaries and the user's question.
+指示事項:
+- 現在の日付は {current_date} です。
+- あなたは複数ステップの研究プロセスの最終段階ですが、そのことには言及しないでください。
+- これまでの全ステップで収集されたすべての情報にアクセスできます。
+- ユーザーの質問にアクセスできます。
+- 提供された要約とユーザーの質問に基づいて、高品質な回答を生成してください。
 
-CRITICAL CITATION REQUIREMENTS:
-- You MUST include citation markers exactly as they appear in the summaries (e.g. 【0-1】, 【0-2】, 【1-1】, etc.)
-- These citation markers will be automatically converted to proper links later
-- Place citation markers immediately after the relevant information that comes from that source
-- Use multiple citation markers when referencing multiple sources for the same fact
-- Every factual claim should be backed by at least one citation marker
-- DO NOT create your own citation markers - only use the ones that appear in the summaries below
+重要な引用要件:
+- 要約に表示されている引用マーカーを正確にそのまま含めてください（例: 【0-1】、【0-2】、【1-1】など）
+- これらの引用マーカーは後で自動的に適切なリンクに変換されます
+- 該当するソースからの情報の直後に引用マーカーを配置してください
+- 同じ事実について複数のソースを参照する場合は、複数の引用マーカーを使用してください
+- すべての事実的主張には少なくとも1つの引用マーカーが必要です
+- 独自の引用マーカーを作成しないでください - 以下の要約に含まれるものだけを使用してください
 
-EXAMPLE:
-"Renewable energy capacity increased by 15% in 2023 【0-1】. Solar power specifically grew by 23% 【0-2】, while wind power expanded by 18% 【1-1】."
+例:
+"2023年に再生可能エネルギー容量は15%増加しました【0-1】。特に太陽光発電は23%成長し【0-2】、風力発電は18%拡大しました【1-1】。"
 
-User Question: {research_topic}
+ユーザーの質問: {research_topic}
 
-Research Summaries with Citation Markers:
+引用マーカー付き研究要約:
 {summaries}
 
-Generate your comprehensive answer below, ensuring every fact is properly cited with the markers from the summaries:"""
+以下に、要約のマーカーを使用してすべての事実が適切に引用された包括的な回答を生成してください:"""
