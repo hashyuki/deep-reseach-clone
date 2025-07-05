@@ -12,8 +12,6 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "tavily-python>=0.7.9",
     "fastapi>=0.115.14",
-    "uvicorn[standard]>=0.35.0",
-    "starlette>=0.46.2",
 ]
 
 [dependency-groups]
