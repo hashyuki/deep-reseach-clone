@@ -1,24 +1,25 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Backend for the LangGraph agent"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "langchain>=0.3.26",
-    "langchain-community>=0.3.26",
-    "langchain-openai>=0.3.25",
-    "langgraph>=0.4.8",
-    "langgraph-cli[inmem]>=0.3.3",
+    "langchain-community>=0.3.27",
+    "langchain-openai>=0.3.27",
+    "langgraph>=0.5.1",
     "python-dotenv>=1.1.1",
-    "tavily-python>=0.7.8",
-    "fastapi>=0.104.1",
-    "uvicorn[standard]>=0.24.0",
-    "starlette>=0.27.0",
+    "tavily-python>=0.7.9",
+    "fastapi>=0.115.14",
+    "uvicorn[standard]>=0.35.0",
+    "starlette>=0.46.2",
 ]
 
 [dependency-groups]
 dev = [
     "mypy>=1.16.1",
-    "ruff>=0.12.1",
+    "ruff>=0.12.2",
+    "ipykernel>=6.29.5",
+    "langgraph-cli[inmem]>=0.3.3",
 ]
