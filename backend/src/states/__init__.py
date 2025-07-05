@@ -1,5 +1,5 @@
 from .overall import OverallState
-from .search import WebSearchState
+from .web_search import WebSearchState
 
 __all__ = [
     "OverallState",
