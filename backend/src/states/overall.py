@@ -25,11 +25,11 @@ class OverallState(BaseModel):
         default_factory=list,
         description="リサーチ中に収集されたソースのリスト"
     )
-    initial_search_query_count: Optional[int] = Field(
+    initial_search_query_count: Annotated[Optional[int], lambda x, y: y or x] = Field(
         default=None,
         description="生成する初期検索クエリの数"
     )
-    max_research_loops: Optional[int] = Field(
+    max_research_loops: Annotated[Optional[int], lambda x, y: y or x] = Field(
         default=None,
         description="実行する最大リサーチループ数"
     )
@@ -37,7 +37,7 @@ class OverallState(BaseModel):
         default=0,
         description="実行済みの現在のリサーチループ数"
     )
-    reasoning_model: Optional[str] = Field(
+    reasoning_model: Annotated[Optional[str], lambda x, y: y or x] = Field(
         default=None,
         description="推論タスクに使用するモデル"
     )
