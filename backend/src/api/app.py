@@ -4,10 +4,9 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-# Define the FastAPI app
 app = FastAPI()
 
-# Add CORS middleware
+# CORS設定
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -22,22 +21,23 @@ app.add_middleware(
 )
 
 
-def create_frontend_router(build_dir="../frontend/dist"):
-    """Creates a router to serve the React frontend.
+def create_frontend_router(build_dir="../../frontend/dist"):
+    """Reactフロントエンドを提供するルーターを作成
 
     Args:
-        build_dir: Path to the React build directory relative to this file.
+        build_dir: Reactビルドディレクトリのパス（このファイルからの相対パス）
 
     Returns:
-        A Starlette application serving the frontend.
+        フロントエンドを提供するStarletteアプリケーション
     """
+    # Reactビルドディレクトリのパスを取得
     build_path = pathlib.Path(__file__).parent.parent / build_dir
 
     if not build_path.is_dir() or not (build_path / "index.html").is_file():
         print(
             f"WARN: Frontend build directory not found or incomplete at {build_path}. Serving frontend will likely fail."
         )
-        # Return a dummy router if build isn't ready
+        # ビルドが存在しない場合、ダミーのルートを返す
         from starlette.routing import Route
 
         async def dummy_frontend(request):
@@ -49,10 +49,11 @@ def create_frontend_router(build_dir="../frontend/dist"):
 
         return Route("/{path:path}", endpoint=dummy_frontend)
 
+    # 静的ファイルサーバーを作成
     return StaticFiles(directory=build_path, html=True)
 
 
-# Mount the frontend under /app to not conflict with the LangGraph API routes
+# FastAPIにフロントエンドを /app にマウント
 app.mount(
     "/app",
     create_frontend_router(),
