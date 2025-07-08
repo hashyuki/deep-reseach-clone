@@ -19,11 +19,9 @@ load_dotenv()
 
 
 class QueryGenerationNode(BaseNode):
-    """ユーザーの質問に基づいて検索クエリを生成するノード。"""
-
-    def __init__(self):
-        """クエリ生成ノードを初期化。"""
-        super().__init__()
+    """
+    ユーザーの質問に基づいて検索クエリを生成するノード
+    """
 
     def _get_query_count(self, state: OverallState, config_obj) -> int:
         """初期検索クエリ数を取得または設定。"""
@@ -131,10 +129,10 @@ class WebResearchRouterNode(BaseNode):
         """Web研究へのルーティングを決定。"""
         # 型安全性のためにstateをOverallStateとしてキャスト
         overall_state = cast(OverallState, state)
-        
+
         # 検索クエリが存在する場合は並列検索タスクを作成
         if overall_state.search_query:
             return self._create_search_tasks(overall_state.search_query, overall_state)
-        
+
         # 検索クエリが無い場合は終了
         return "finalize_answer"
