@@ -14,7 +14,7 @@ from .finalization import (
 __all__ = [
     # Class definitions
     "QueryGenerationNode",
-    "WebResearchRouterNode", 
+    "WebResearchRouterNode",
     "WebResearchNode",
     "ReflectionNode",
     "ResearchEvaluationNode",

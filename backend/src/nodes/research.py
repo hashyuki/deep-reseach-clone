@@ -197,9 +197,7 @@ class ResearchEvaluationNode(BaseNode):
         """研究評価ノードを初期化。"""
         super().__init__()
 
-    def _get_max_research_loops(
-        self, state: OverallState, config_obj
-    ) -> int:
+    def _get_max_research_loops(self, state: OverallState, config_obj) -> int:
         """状態または設定から最大研究ループ数を取得。"""
         return (
             state.max_research_loops
@@ -214,7 +212,7 @@ class ResearchEvaluationNode(BaseNode):
     def _create_follow_up_searches(self, state: OverallState, config_obj) -> List[Send]:
         """知識ギャップのフォローアップ検索タスクを作成。"""
         max_follow_up = config_obj.research.max_follow_up_queries
-        
+
         return [
             Send(
                 "web_research",
@@ -223,9 +221,7 @@ class ResearchEvaluationNode(BaseNode):
                     id=len(state.search_query) + int(idx),
                 ),
             )
-            for idx, follow_up_query in enumerate(
-                state.search_query[-max_follow_up:]
-            )
+            for idx, follow_up_query in enumerate(state.search_query[-max_follow_up:])
         ]
 
     def __call__(

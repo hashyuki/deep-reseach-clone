@@ -19,11 +19,9 @@ load_dotenv()
 
 
 class FinalizationNode(BaseNode):
-    """研究結果を包括的な回答にまとめるノード。"""
-
-    def __init__(self):
-        """最終化ノードを初期化。"""
-        super().__init__()
+    """
+    研究結果を包括的な回答にまとめるノード
+    """
 
     def _get_reasoning_model(self, state: OverallState, config_obj) -> str:
         """状態または設定から推論モデルを取得。"""
