@@ -8,7 +8,7 @@ from .url_utils import resolve_urls
 __all__ = [
     "get_citations",
     "get_current_date",
-    "insert_citation_markers", 
+    "insert_citation_markers",
     "get_research_topic",
     "resolve_urls",
 ]

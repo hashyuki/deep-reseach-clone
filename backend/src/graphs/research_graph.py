@@ -1,42 +1,24 @@
-from typing import Hashable, Union, cast
-
 from langgraph.graph import END, START, StateGraph
 from src.nodes import (
     FinalizationNode,
     QueryGenerationNode,
     ReflectionNode,
-    ResearchEvaluationNode,
     WebResearchNode,
-    WebResearchRouterNode,
 )
+from src.routers import ResearchEvaluationRouter, WebResearchRouter
 from src.states import OverallState
 
 
-# Router functions for conditional edges
-def web_research_router(state: OverallState) -> Union[Hashable, list[Hashable]]:
-    """Route to web research based on search queries."""
-    result = WebResearchRouterNode()(state, {})
-    if isinstance(result, list):
-        return cast(list[Hashable], result)  # Cast Send objects to Hashable
-    return "web_research"
-
-
-def research_evaluation_router(state: OverallState) -> Union[Hashable, list[Hashable]]:
-    """Route based on research evaluation."""
-    result = ResearchEvaluationNode()(state, {})
-    if isinstance(result, str):
-        return result
-    elif isinstance(result, list):
-        return cast(list[Hashable], result)  # Cast Send objects to Hashable
-    return "finalize_answer"
-
+# Create router instances
+web_research_router = WebResearchRouter()
+research_evaluation_router = ResearchEvaluationRouter()
 
 # Create our Research Agent Graph
 builder = StateGraph(OverallState)
 
 # Define the nodes we will cycle between
 builder.add_node("generate_query", QueryGenerationNode())
-builder.add_node("web_research", WebResearchNode()) 
+builder.add_node("web_research", WebResearchNode())
 builder.add_node("reflection", ReflectionNode())
 builder.add_node("finalize_answer", FinalizationNode())
 
